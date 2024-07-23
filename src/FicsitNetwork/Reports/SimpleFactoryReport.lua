@@ -55,6 +55,7 @@ for i,producer in ipairs(producers) do
     for i,product in ipairs(recipe:getProducts()) do
         local resultName = product.Type.Name
         local maxOutput = product.Amount * perMinute * getMultiplicator(producer)
+        local currentOutput = maxOutput * producer.Potential
         
         local buildingLabels = component.proxy(component.findComponent("TInfo BScreen " .. "R" .. product.Type.Name:gsub(" +", "")))
         local buildingName = "Unknown location"
@@ -62,11 +63,16 @@ for i,producer in ipairs(producers) do
             local name, value = buildingLabel:getPrefabSignData():getTextElements()
             buildingName = value[1]
         end
-                
+
+        local productivityInfo = ""
+        if producer.Productivity == 0 then
+            productivityInfo = "! "
+        end
+
         print(
-            resultName 
+            productivityInfo .. resultName 
             .. ": " 
-            .. (maxOutput * producer.Potential) 
+            .. currentOutput
             .. " (" 
             .. producerName 
             .. " = " 
