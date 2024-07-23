@@ -91,6 +91,48 @@ for i,producer in ipairs(producers) do
     end
 end
 
+local extractorTable = {}
+for extractorId,definition in pairs(extractorTable) do
+    local extractor = component.proxy(extractorId)
+    
+    local currentOutput = definition["maxOutput"] * extractor.Potential
+    local normalizedProduct = definition["output"]:gsub(" +", "")
+
+    local productivityInfo = ""
+    if extractor.Productivity == 0 then
+        productivityInfo = "! "
+    end
+
+    if (reports[normalizedProduct] ~= nil) then
+        reports[normalizedProduct]["current"] = currentOutput + reports[normalizedProduct]["current"]
+        reports[normalizedProduct]["max"] = definition["maxOutput"] + reports[normalizedProduct]["max"]
+        reports[normalizedProduct]["text"] = productivityInfo .. definition["output"] 
+        .. ": " 
+        .. reports[normalizedProduct]["current"]
+        .. " (multiple" 
+        .. " = " 
+        .. reports[normalizedProduct]["max"]
+        .. ")"
+    else
+        reports[normalizedProduct] = {
+            ["text"]=productivityInfo .. definition["output"] 
+            .. ": " 
+            .. currentOutput
+            .. " (" 
+            .. extractor:getType().DisplayName 
+            .. " = " 
+            .. definition["maxOutput"] 
+            .. " at " 
+            .. (extractor.Potential * 100) 
+            .. "%)",
+            ["max"] = definition["maxOutput"],
+            ["current"] = currentOutput
+        }
+        table.insert(reportKeys, normalizedProduct)
+    end
+end
+
+
 table.sort(reportKeys)
 for _, reportKey in ipairs(reportKeys) do
     print(reports[reportKey]["text"])
