@@ -1,5 +1,3 @@
-local producers = component.proxy(component.findComponent("TProducer"))
-
 function getMultiplicator(producer)
     local name = producer:getType().DisplayName
     
@@ -50,6 +48,8 @@ end
 
 local reports = {}
 local reportKeys = {}
+
+local producers = component.proxy(component.findComponent("TProducer"))
 for i,producer in ipairs(producers) do
     local producerName = producer:getType().DisplayName
     local recipe = producer:getRecipe()
