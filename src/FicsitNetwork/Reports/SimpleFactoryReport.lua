@@ -48,6 +48,8 @@ function getMultiplicator(producer)
     end
 end
 
+local reports = {}
+local reportKeys = {}
 for i,producer in ipairs(producers) do
     local producerName = producer:getType().DisplayName
     local recipe = producer:getRecipe()
@@ -56,8 +58,10 @@ for i,producer in ipairs(producers) do
         local resultName = product.Type.Name
         local maxOutput = product.Amount * perMinute * getMultiplicator(producer)
         local currentOutput = maxOutput * producer.Potential
+
+        local normalizedProduct = product.Type.Name:gsub(" +", "")
         
-        local buildingLabels = component.proxy(component.findComponent("TInfo BScreen " .. "R" .. product.Type.Name:gsub(" +", "")))
+        local buildingLabels = component.proxy(component.findComponent("TInfo BScreen " .. "R" .. normalizedProduct))
         local buildingName = "Unknown location"
         for i,buildingLabel in ipairs(buildingLabels) do
             local name, value = buildingLabel:getPrefabSignData():getTextElements()
@@ -69,8 +73,8 @@ for i,producer in ipairs(producers) do
             productivityInfo = "! "
         end
 
-        print(
-            productivityInfo .. resultName 
+        reports[normalizedProduct] = {
+            ["text"]=productivityInfo .. resultName 
             .. ": " 
             .. currentOutput
             .. " (" 
@@ -82,6 +86,12 @@ for i,producer in ipairs(producers) do
             .. "% " 
             .. buildingName 
             .. ")"
-        )
+        }
+        table.insert(reportKeys, normalizedProduct)
     end
+end
+
+table.sort(reportKeys)
+for _, reportKey in ipairs(reportKeys) do
+    print(reports[reportKey]["text"])
 end
