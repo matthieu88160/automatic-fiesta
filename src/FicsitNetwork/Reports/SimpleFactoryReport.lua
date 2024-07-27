@@ -112,9 +112,21 @@ function addToReport(reportInformation)
             ["outputName"] = outputName,
             ["building"] = building,
             ["potential"] = potential,
-            ["instances"] = 1
+            ["instances"] = 1,
+            ["index"] = productKey
         }
         table.insert(reportKeys, productKey)
+    end
+end
+
+function addToRequirementReport(reportInformation)
+    if (requirementReports[reportInformation["index"]] ~= nil) then
+        requirementReports[reportInformation["index"]]["requirement"] = requirementReports[reportInformation["index"]]["requirement"] + reportInformation["currentInput"]
+    else
+        requirementReports[reportInformation["index"]] = {
+            ["requirement"] = reportInformation["currentInput"],
+            ["inputName"] = reportInformation["inputName"]
+        }
     end
 end
 
@@ -160,6 +172,28 @@ for i,producer in ipairs(producers) do
             }
         )
     end
+
+
+    for i,ingredient in ipairs(recipe:getIngredients()) do
+        local ingredientName = ingredient.Type.Name
+        local maxInput = ingredient.Amount * perMinute * getMultiplicator(producer)
+        local currentInput = maxInput * producer.Potential
+
+        if (ingredient.Type.Form == 2) then
+            maxInput = maxInput / 1000
+            currentInput = currentInput / 1000
+        end
+
+        local normalizedIngredient = ingredient.Type.Name:gsub(" +", "")
+
+        addToRequirementReport(
+            {
+                ["index"] = normalizedIngredient,
+                ["currentInput"] = currentInput,
+                ["inputName"] = ingredientName
+            }
+        )
+    end
 end
 
 if (extractorTable == nil) then
@@ -191,22 +225,39 @@ for extractorId,definition in pairs(extractorTable) do
     )
 end
 
-
 table.sort(reportKeys)
 for _, reportKey in ipairs(reportKeys) do
-    --print(reports[reportKey]["text"])
-    
+    local normalizedName = reports[reportKey]["index"]
+    local productionInfo = reports[reportKey]["productionInfo"]
+    local expectation = 0
+
+    if (requirementReports[normalizedName] ~= nil) then
+        expectation = math.floor(requirementReports[normalizedName]["requirement"] * 100) / 100
+    end
+
+    local usage = math.floor(reports[reportKey]["current"] * 100) / 100
+
+    if (expectation > usage) then
+        productionInfo = "- " .. productionInfo
+    elseif (expectation < usage) then
+        productionInfo = "+ " .. productionInfo
+    else
+        productionInfo = "= " .. productionInfo
+    end
+
     print(
-        reports[reportKey]["productionInfo"]
-        .. reports[reportKey]["outputName"]
-        .. ": " 
-        .. math.floor(reports[reportKey]["current"] * 100) / 100
-        .. " (" 
-        .. reports[reportKey]["building"]
-        .. " = " 
-        .. reports[reportKey]["max"]
-        .. " at " 
-        .. math.floor(reports[reportKey]["potential"] * 10000) / 100 
-        .. "%)"
+        productionInfo,
+        reports[reportKey]["outputName"],
+        ": " ,
+        usage,
+        " / ",
+        expectation,
+        " (" ,
+        reports[reportKey]["building"],
+        " = " ,
+        reports[reportKey]["max"],
+        " at " ,
+        math.floor(reports[reportKey]["potential"] * 10000) / 100 ,
+        "%)"
     )
 end
