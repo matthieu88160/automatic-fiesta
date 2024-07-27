@@ -239,7 +239,7 @@ for _, reportKey in ipairs(reportKeys) do
 
     if (expectation > usage) then
         productionInfo = "- " .. productionInfo
-    elseif (expectation < usage) then
+    elseif ((expectation + 1) < usage) then
         productionInfo = "+ " .. productionInfo
     else
         productionInfo = "= " .. productionInfo
@@ -248,16 +248,18 @@ for _, reportKey in ipairs(reportKeys) do
     print(
         productionInfo,
         reports[reportKey]["outputName"],
-        ": " ,
+        ":" ,
         usage,
-        " / ",
+        "/",
         expectation,
-        " (" ,
+        "(",
         reports[reportKey]["building"],
-        " = " ,
+        " =",
         reports[reportKey]["max"],
-        " at " ,
-        math.floor(reports[reportKey]["potential"] * 10000) / 100 ,
-        "%)"
+        " at",
+        math.floor(reports[reportKey]["potential"] * 10000) / 100,
+        "%, rest",
+        reports[reportKey]["max"] - usage,
+        ")"
     )
 end
