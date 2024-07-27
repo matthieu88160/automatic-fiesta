@@ -41,6 +41,16 @@ function getMultiplicator(producer)
         return 64
     elseif name == "Foundry x100" then
         return 100
+    elseif name == "Refinery x4" then
+        return 4
+    elseif name == "Refinery x10" then
+        return 10
+    elseif name == "Refinery x16" then
+        return 16
+    elseif name == "Refinery x64" then
+        return 64
+    elseif name == "Refinery x100" then
+        return 100
     else
         return 1
     end
@@ -59,6 +69,11 @@ for i,producer in ipairs(producers) do
         local maxOutput = product.Amount * perMinute * getMultiplicator(producer)
         local currentOutput = maxOutput * producer.Potential
 
+        if (product.Type.Form == 2) then
+            maxOutput = maxOutput / 1000
+            currentOutput = currentOutput / 1000
+        end
+
         local normalizedProduct = product.Type.Name:gsub(" +", "")
         
         local buildingLabels = component.proxy(component.findComponent("TInfo BScreen " .. "R" .. normalizedProduct))
@@ -73,25 +88,40 @@ for i,producer in ipairs(producers) do
             productivityInfo = "! "
         end
 
-        reports[normalizedProduct] = {
-            ["text"]=productivityInfo .. resultName 
+        if (reports[normalizedProduct] ~= nil) then
+            reports[normalizedProduct]["current"] = currentOutput + reports[normalizedProduct]["current"]
+            reports[normalizedProduct]["max"] = maxOutput + reports[normalizedProduct]["max"]
+            reports[normalizedProduct]["text"] = productivityInfo .. resultName 
             .. ": " 
-            .. currentOutput
-            .. " (" 
-            .. producerName 
+            .. reports[normalizedProduct]["current"]
+            .. " (multiple" 
             .. " = " 
-            .. maxOutput 
-            .. " at " 
-            .. (producer.Potential * 100) 
-            .. "% " 
-            .. buildingName 
+            .. reports[normalizedProduct]["max"]
             .. ")"
-        }
-        table.insert(reportKeys, normalizedProduct)
+        else
+            reports[normalizedProduct] = {
+                ["text"]=productivityInfo .. resultName
+                .. ": " 
+                .. currentOutput
+                .. " (" 
+                .. producer:getType().DisplayName 
+                .. " = " 
+                .. maxOutput
+                .. " at " 
+                .. (producer.Potential * 100) 
+                .. "%)",
+                ["max"] = maxOutput,
+                ["current"] = currentOutput
+            }
+            table.insert(reportKeys, normalizedProduct)
+        end
     end
 end
 
-local extractorTable = {}
+if (extractorTable == nil) then
+    extractorTable = {}
+end
+
 for extractorId,definition in pairs(extractorTable) do
     local extractor = component.proxy(extractorId)
     
