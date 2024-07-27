@@ -57,7 +57,66 @@ function getMultiplicator(producer)
 end
 
 local reports = {}
+local requirementReports = {}
 local reportKeys = {}
+
+function addToReport(reportInformation)
+    local productKey = reportInformation["index"]
+    local currentOutput = reportInformation["currentOutput"]
+    local maxOutput = reportInformation["maxOutput"]
+    local text = reportInformation["text"]
+    local building = reportInformation["building"]
+    local potential = reportInformation["potential"]
+    local isProducing = reportInformation["isProducing"]
+    local outputName = reportInformation["outputName"]
+
+    if (reports[productKey] ~= nil) then
+        if (not isProducing and reports[productKey]["productionInfo"] == "") then
+            reports[productKey]["productionInfo"] = "~"
+        elseif (isProducing and reports[productKey]["productionInfo"] == "!") then
+            reports[productKey]["productionInfo"] = "~"
+        end
+
+        reports[productKey]["potential"] = ((reports[productKey]["potential"] * reports[productKey]["instances"]) + potential) / (reports[productKey]["instances"] + 1)
+        reports[productKey]["instances"] = reports[productKey]["instances"] + 1
+        reports[productKey]["building"] = "multiple"
+        reports[productKey]["current"] = currentOutput + reports[productKey]["current"]
+        reports[productKey]["max"] = maxOutput + reports[productKey]["max"]
+        reports[productKey]["text"] = text 
+        .. ": " 
+        .. reports[productKey]["current"]
+        .. " (multiple" 
+        .. " = " 
+        .. reports[productKey]["max"]
+        .. ")"
+    else
+        local productionInfo = ""
+        if (not isProducing) then
+            productionInfo = "!"
+        end
+
+        reports[productKey] = {
+            ["text"]=text
+            .. ": " 
+            .. currentOutput
+            .. " (" 
+            .. building
+            .. " = " 
+            .. maxOutput
+            .. " at " 
+            .. (potential * 100) 
+            .. "%)",
+            ["max"] = maxOutput,
+            ["current"] = currentOutput,
+            ["productionInfo"] = productionInfo,
+            ["outputName"] = outputName,
+            ["building"] = building,
+            ["potential"] = potential,
+            ["instances"] = 1
+        }
+        table.insert(reportKeys, productKey)
+    end
+end
 
 local producers = component.proxy(component.findComponent("TProducer"))
 for i,producer in ipairs(producers) do
@@ -88,33 +147,18 @@ for i,producer in ipairs(producers) do
             productivityInfo = "! "
         end
 
-        if (reports[normalizedProduct] ~= nil) then
-            reports[normalizedProduct]["current"] = currentOutput + reports[normalizedProduct]["current"]
-            reports[normalizedProduct]["max"] = maxOutput + reports[normalizedProduct]["max"]
-            reports[normalizedProduct]["text"] = productivityInfo .. resultName 
-            .. ": " 
-            .. reports[normalizedProduct]["current"]
-            .. " (multiple" 
-            .. " = " 
-            .. reports[normalizedProduct]["max"]
-            .. ")"
-        else
-            reports[normalizedProduct] = {
-                ["text"]=productivityInfo .. resultName
-                .. ": " 
-                .. currentOutput
-                .. " (" 
-                .. producer:getType().DisplayName 
-                .. " = " 
-                .. maxOutput
-                .. " at " 
-                .. (producer.Potential * 100) 
-                .. "%)",
-                ["max"] = maxOutput,
-                ["current"] = currentOutput
+        addToReport(
+            {
+                ["isProducing"] = producer.Productivity ~= 0,
+                ["outputName"] = product.Type.Name,
+                ["index"] = normalizedProduct,
+                ["currentOutput"] = currentOutput,
+                ["maxOutput"] = maxOutput,
+                ["text"] = productivityInfo .. resultName,
+                ["building"] = producer:getType().DisplayName,
+                ["potential"] = producer.Potential
             }
-            table.insert(reportKeys, normalizedProduct)
-        end
+        )
     end
 end
 
@@ -133,37 +177,36 @@ for extractorId,definition in pairs(extractorTable) do
         productivityInfo = "! "
     end
 
-    if (reports[normalizedProduct] ~= nil) then
-        reports[normalizedProduct]["current"] = currentOutput + reports[normalizedProduct]["current"]
-        reports[normalizedProduct]["max"] = definition["maxOutput"] + reports[normalizedProduct]["max"]
-        reports[normalizedProduct]["text"] = productivityInfo .. definition["output"] 
-        .. ": " 
-        .. reports[normalizedProduct]["current"]
-        .. " (multiple" 
-        .. " = " 
-        .. reports[normalizedProduct]["max"]
-        .. ")"
-    else
-        reports[normalizedProduct] = {
-            ["text"]=productivityInfo .. definition["output"] 
-            .. ": " 
-            .. currentOutput
-            .. " (" 
-            .. extractor:getType().DisplayName 
-            .. " = " 
-            .. definition["maxOutput"] 
-            .. " at " 
-            .. (extractor.Potential * 100) 
-            .. "%)",
-            ["max"] = definition["maxOutput"],
-            ["current"] = currentOutput
+    addToReport(
+        {
+            ["isProducing"] = extractor.Productivity ~= 0,
+            ["outputName"] = definition["output"],
+            ["index"] = normalizedProduct,
+            ["currentOutput"] = currentOutput,
+            ["maxOutput"] = definition["maxOutput"],
+            ["text"] = productivityInfo .. definition["output"],
+            ["building"] = extractor:getType().DisplayName,
+            ["potential"] = extractor.Potential
         }
-        table.insert(reportKeys, normalizedProduct)
-    end
+    )
 end
 
 
 table.sort(reportKeys)
 for _, reportKey in ipairs(reportKeys) do
-    print(reports[reportKey]["text"])
+    --print(reports[reportKey]["text"])
+    
+    print(
+        reports[reportKey]["productionInfo"]
+        .. reports[reportKey]["outputName"]
+        .. ": " 
+        .. math.floor(reports[reportKey]["current"] * 100) / 100
+        .. " (" 
+        .. reports[reportKey]["building"]
+        .. " = " 
+        .. reports[reportKey]["max"]
+        .. " at " 
+        .. math.floor(reports[reportKey]["potential"] * 10000) / 100 
+        .. "%)"
+    )
 end
