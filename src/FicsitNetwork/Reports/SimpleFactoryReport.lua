@@ -130,6 +130,20 @@ function addToRequirementReport(reportInformation)
     end
 end
 
+if (export ~= nil) then
+    for name, amount in pairs(export) do
+        local normalizedName = name:gsub(" +", "")
+
+        addToRequirementReport(
+            {
+                ["currentInput"] = amount,
+                ["inputName"] = name,
+                ["index"] = normalizedName
+            }
+        )
+    end
+end
+
 local producers = component.proxy(component.findComponent("TProducer"))
 for i,producer in ipairs(producers) do
     local producerName = producer:getType().DisplayName
