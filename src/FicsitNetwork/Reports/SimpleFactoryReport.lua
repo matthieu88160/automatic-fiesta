@@ -130,6 +130,26 @@ function addToRequirementReport(reportInformation)
     end
 end
 
+function getMaxOutputFromOverride(currentMaxOutput, componentId)
+    if (maxOutputOverrides ~= nil) then
+        if (maxOutputOverrides[componentId] ~= nil) then
+            return maxOutputOverrides[componentId]
+        end
+        
+        if (maxOutputOverrides["ifGreater"] ~= nil) then
+            if (currentMaxOutput > maxOutputOverrides["ifGreater"]) then
+                return maxOutputOverrides["ifGreater"]
+            end
+        end
+        
+        if (maxOutputOverrides["all"] ~= nil) then
+            return maxOutputOverrides["all"]
+        end
+    end
+
+    return currentMaxOutput
+end
+
 if (export ~= nil) then
     for name, amount in pairs(export) do
         local normalizedName = name:gsub(" +", "")
@@ -144,8 +164,10 @@ if (export ~= nil) then
     end
 end
 
-local producers = component.proxy(component.findComponent("TProducer"))
-for i,producer in ipairs(producers) do
+local producerIds = component.findComponent("TProducer")
+for _,producerId in ipairs(producerIds) do
+    local producer = component.proxy(producerId)
+
     local producerName = producer:getType().DisplayName
     local recipe = producer:getRecipe()
     local perMinute = 60 / recipe.Duration;
@@ -179,7 +201,7 @@ for i,producer in ipairs(producers) do
                 ["outputName"] = product.Type.Name,
                 ["index"] = normalizedProduct,
                 ["currentOutput"] = currentOutput,
-                ["maxOutput"] = maxOutput,
+                ["maxOutput"] = getMaxOutputFromOverride(maxOutput, producerId),
                 ["text"] = productivityInfo .. resultName,
                 ["building"] = producer:getType().DisplayName,
                 ["potential"] = producer.Potential
