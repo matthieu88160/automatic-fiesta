@@ -51,6 +51,16 @@ function getMultiplicator(producer)
         return 64
     elseif name == "Refinery x100" then
         return 100
+    elseif name == "Packager x4" then
+        return 4
+    elseif name == "Packager x10" then
+        return 10
+    elseif name == "Packager x16" then
+        return 16
+    elseif name == "Packager x64" then
+        return 64
+    elseif name == "Packager x100" then
+        return 100
     else
         return 1
     end
