@@ -174,6 +174,25 @@ if (export ~= nil) then
     end
 end
 
+if (import ~= nil) then
+    for name, amount in pairs(import) do
+        local normalizedName = name:gsub(" +", "")
+
+        addToReport(
+            {
+                ["isProducing"] = true,
+                ["outputName"] = name,
+                ["index"] = normalizedName,
+                ["currentOutput"] = amount,
+                ["maxOutput"] = amount,
+                ["text"] = name,
+                ["building"] = "Import",
+                ["potential"] = 1
+            }
+        )
+    end
+end
+
 local producerIds = component.findComponent("TProducer")
 for _,producerId in ipairs(producerIds) do
     local producer = component.proxy(producerId)
@@ -272,12 +291,14 @@ for extractorId,definition in pairs(extractorTable) do
 end
 
 table.sort(reportKeys)
+local processedRequirements = {}
 for _, reportKey in ipairs(reportKeys) do
     local normalizedName = reports[reportKey]["index"]
     local productionInfo = reports[reportKey]["productionInfo"]
     local expectation = 0
 
     if (requirementReports[normalizedName] ~= nil) then
+        table.insert(processedRequirements, normalizedName)
         expectation = math.floor(requirementReports[normalizedName]["requirement"] * 100) / 100
     end
 
@@ -308,4 +329,31 @@ for _, reportKey in ipairs(reportKeys) do
         reports[reportKey]["max"] - usage,
         ")"
     )
+end
+
+for key, values in pairs(requirementReports) do
+    local notProcessed = true
+    for _, processedElement in ipairs(processedRequirements) do
+        if (key == processedElement) then
+            notProcessed = false
+        end
+    end
+
+    if (notProcessed) then
+        print(
+            "-!",
+            key,
+            ":" ,
+            0,
+            "/",
+            math.floor(requirementReports[key]["requirement"] * 100) / 100,
+            "( No producer",
+            "=",
+            0,
+            " at",
+            0,
+            "%",
+            ")"
+        )
+    end
 end
