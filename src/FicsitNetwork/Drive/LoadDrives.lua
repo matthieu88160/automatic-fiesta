@@ -44,12 +44,12 @@ for i, drive in pairs(fs.childs("/dev")) do
     end
 end
 
-for _, dataFile in ipairs(loadOrder['data']) do
-    fs.doFile(dataFile)
-end
-
 for _, libraryFile in ipairs(loadOrder['lib']) do
     fs.doFile(libraryFile)
+end
+
+for _, dataFile in ipairs(loadOrder['data']) do
+    fs.doFile(dataFile)
 end
 
 for _, bootFile in ipairs(loadOrder['boot']) do
