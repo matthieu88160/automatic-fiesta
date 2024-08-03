@@ -1,4 +1,5 @@
 fs = filesystem
+saveDirectory = nil
 
 if fs.initFileSystem("/dev") == false then
     computer.panic("Cannot initialize /dev")
@@ -41,6 +42,11 @@ for i, drive in pairs(fs.childs("/dev")) do
     local bootDir = '/' .. alphabet[i] .. '/boot'
     if (fs.isDir(bootDir)) then
         iterateFolder('boot', bootDir)
+    end
+    
+    local saveDir = '/' .. alphabet[i] .. '/save'
+    if (fs.isDir(saveDir)) then
+        saveDirectory = saveDir
     end
 end
 
