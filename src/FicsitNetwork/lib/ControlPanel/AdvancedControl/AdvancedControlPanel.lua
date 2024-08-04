@@ -1,57 +1,76 @@
-SimpleControlScreen = {
-    _class = "SimpleControlScreen",
+AdvancedControlScreen = {
+    _class = "AdvancedControlScreen",
     mode_stop = "mode_stop",
     mode_running = "mode_running",
     mode_overclock = "mode_overclock"
 }
 
-function SimpleControlScreen:new(definition)
+function AdvancedControlScreen:new(definition)
     if (definition == nil) then
-        computer.panic("Cannot instantiate SimpleControlScreen without definition")
+        computer.panic("Cannot instantiate AdvancedControlScreen without definition")
     end
     if (definition.id == nil) then
-        computer.panic("Cannot instantiate SimpleControlScreen without screen id")
+        computer.panic("Cannot instantiate AdvancedControlScreen without screen id")
     end
     if (definition.panelIndex == nil) then
-        computer.panic("Cannot instantiate SimpleControlScreen without panel index")
+        computer.panic("Cannot instantiate AdvancedControlScreen without panel index")
     end
     if (definition.version == nil) then
-        computer.panic("Cannot instantiate SimpleControlScreen without panel version")
-    end
-    if (definition.offset == nil) then
-        computer.panic("Cannot instantiate SimpleControlScreen without panel offset")
+        computer.panic("Cannot instantiate AdvancedControlScreen without panel version")
     end
 
     local component = component.proxy(definition.id)
     local control = {
         components = {},
-        componentStore = SimpleControlScreenComponentStore:new(
+        componentStore = AdvancedControlScreenComponentStore:new(
             {
-                name = {0, 10 - definition.offset},
-                potential = {4, 10 - definition.offset},
+                name = {0, 10},
+                potential = {4, 10},
                 status = {
-                    indicator = {6, 10 - definition.offset},
-                    switch = {6, 9 - definition.offset},
+                    indicator = {6, 10},
+                    switch = {6, 9},
+                },
+                inputs = {
+                    {
+                        production = {0, 8},
+                        name = {0, 7},
+                        usage = {0, 6}
+                    },
+                    {
+                        production = {2, 8},
+                        name = {2, 7},
+                        usage = {2, 6}
+                    },
+                    {
+                        production = {4, 8},
+                        name = {4, 7},
+                        usage = {4, 6}
+                    },
+                    {
+                        production = {6, 8},
+                        name = {6, 7},
+                        usage = {6, 6}
+                    },
                 },
                 outputs = {
                     {
-                        production = {0, 8 - definition.offset},
-                        name = {2, 8 - definition.offset},
-                        required = {4, 8 - definition.offset},
-                        max = {6, 8 - definition.offset}
+                        production = {0, 4},
+                        name = {0, 3},
+                        required = {0, 2},
+                        max = {0, 1}
                     }
                 },
                 target = {
-                    encoder = {8, 10 - definition.offset},
-                    value = {9, 10 - definition.offset}
+                    encoder = {8, 4},
+                    value = {9, 4}
                 },
                 overclock = {
-                    encoder = {8, 9 - definition.offset},
-                    value = {9, 9 - definition.offset}
+                    encoder = {8, 3},
+                    value = {9, 3}
                 },
                 stepper = {
-                    encoder = {7, 10 - definition.offset},
-                    value = {7, 9 - definition.offset}
+                    encoder = {7, 4},
+                    value = {7, 3}
                 }
             },
             component,
@@ -76,12 +95,18 @@ function SimpleControlScreen:new(definition)
     return control
 end
 
-function SimpleControlScreen:clear()
+function AdvancedControlScreen:clear()
     self:setName("")
     self:setPotential(0, 0)
 
     self.componentStore.target.value:setText("Initialization")
     self.componentStore.overclock.value:setText("Initialization")
+
+    for _, inputTable in pairs(self.componentStore.inputs) do
+        inputTable.production:setText("Initialization")
+        inputTable.name:setText("Initialization")
+        inputTable.usage:setText("Initialization")
+    end
 
     for _, outputTable in pairs(self.componentStore.outputs) do
         outputTable.production:setText("Initialization")
@@ -94,6 +119,12 @@ function SimpleControlScreen:clear()
 
     self.componentStore.target.value:setText("")
     self.componentStore.overclock.value:setText("")
+
+    for _, inputTable in pairs(self.componentStore.inputs) do
+        inputTable.production:setText("")
+        inputTable.name:setText("")
+        inputTable.usage:setText("")
+    end
 
     for _, outputTable in pairs(self.componentStore.outputs) do
         outputTable.production:setText("")
@@ -116,7 +147,7 @@ function SimpleControlScreen:clear()
     event.pull(0.1)
 end
 
-function SimpleControlScreen:setName(name)
+function AdvancedControlScreen:setName(name)
     function _ControlScreenSubName(name)
         if (#name > 45) then
             return _ControlScreenSubName(string.sub(name, 1, 42)) .. "..."
@@ -132,13 +163,13 @@ function SimpleControlScreen:setName(name)
     self.data.name = name
 end
 
-function SimpleControlScreen:setPotential(potential, limit)
+function AdvancedControlScreen:setPotential(potential, limit)
     self.data.potential = potential
     self.componentStore.potential.percent = potential
     self.componentStore.potential.limit = limit or 1
 end
 
-function SimpleControlScreen:setStatus(mode)
+function AdvancedControlScreen:setStatus(mode)
     local elements = {
         self.componentStore.status.indicator,
         self.componentStore.status.switch
@@ -156,7 +187,7 @@ function SimpleControlScreen:setStatus(mode)
     end
 end
 
-function SimpleControlScreen:setOutput(index, prodution, name, required, max)
+function AdvancedControlScreen:setOutput(index, prodution, name, required, max)
     local outputTable = self.componentStore.outputs[index]
 
     if (outputTable == nil) then
@@ -186,13 +217,13 @@ function SimpleControlScreen:setOutput(index, prodution, name, required, max)
     end
 end
 
-function SimpleControlScreen:setTarget(value)
+function AdvancedControlScreen:setTarget(value)
     self.data.target = value
     self.componentStore.target.value:setText(math.floor(value * 100) / 100)
     self.componentStore.target.value:setColor(0, 1, 0, 0.05)
 end
 
-function SimpleControlScreen:setOverclock(value)
+function AdvancedControlScreen:setOverclock(value)
     self.data.overclock = value
     self.componentStore.overclock.value:setText(math.floor(value * 100) / 100)
     self.componentStore.overclock.value:setColor(0, 1, 0, 0.05)
@@ -215,15 +246,15 @@ function SimpleControlScreen:setOverclock(value)
     end
 end
 
-function SimpleControlScreen:addComponent(component)
+function AdvancedControlScreen:addComponent(component)
     table.insert(self.components, component)
 end
 
-function SimpleControlScreen:getComponents()
+function AdvancedControlScreen:getComponents()
     return self.components
 end
 
-function SimpleControlScreen:startListening(dispatcher)
+function AdvancedControlScreen:startListening(dispatcher)
     event.listen(self.componentStore.status.switch)
     event.listen(self.componentStore.target.encoder)
     event.listen(self.componentStore.overclock.encoder)
@@ -235,7 +266,7 @@ function SimpleControlScreen:startListening(dispatcher)
     dispatcher:addListener(self.componentStore.stepper.encoder:getHash(), {self, self.onStepperChange})
 end
 
-function SimpleControlScreen:applyProductionTarget(target)
+function AdvancedControlScreen:applyProductionTarget(target)
     local newPotential = target / self.data.maxProduction
 
     for _, worker in ipairs(self.components) do
@@ -243,22 +274,22 @@ function SimpleControlScreen:applyProductionTarget(target)
     end
 end
 
-function SimpleControlScreen:isOverclocked()
+function AdvancedControlScreen:isOverclocked()
     return self.componentStore.status.switch.state == 2
 end
 
-function SimpleControlScreen:onStatusSwitch(event)
+function AdvancedControlScreen:onStatusSwitch(event)
     if (event:getComponent().state == 0) then
-        self:setStatus(SimpleControlScreen.mode_stop)
+        self:setStatus(self.mode_stop)
         for _, worker in ipairs(self.components) do
             worker.standby = true
         end
     else
         if (event:getComponent().state == 1) then
-            self:setStatus(SimpleControlScreen.mode_running)
+            self:setStatus(self.mode_running)
             self:applyProductionTarget(self.data.target)
         else
-            self:setStatus(SimpleControlScreen.mode_overclock)
+            self:setStatus(self.mode_overclock)
             self:applyProductionTarget(self.data.overclock)
         end
 
@@ -268,9 +299,9 @@ function SimpleControlScreen:onStatusSwitch(event)
     end
 end
 
-function SimpleControlScreen:onTargetChange(event)
+function AdvancedControlScreen:onTargetChange(event)
     local value = event:getArguments()[1]
-    self:setTarget(self.data.target + (value * self.data.step))
+    self:setTarget(self.data.target + (value / 4))
 
     if (self.data.target < 0) then
         self:setTarget(0)
@@ -283,9 +314,9 @@ function SimpleControlScreen:onTargetChange(event)
     end
 end
 
-function SimpleControlScreen:onOverclockChange(event)
+function AdvancedControlScreen:onOverclockChange(event)
     local value = event:getArguments()[1]
-    self:setOverclock(self.data.overclock + (value * self.data.step))
+    self:setOverclock(self.data.overclock + (value / 4))
     
     if (self.data.overclock < self.data.target) then
         self:setOverclock(self.data.target)
@@ -298,7 +329,7 @@ function SimpleControlScreen:onOverclockChange(event)
     end
 end
 
-function SimpleControlScreen:onStepperChange(event)
+function AdvancedControlScreen:onStepperChange(event)
     local value = event:getArguments()[1]
 
     if (value == 1) then

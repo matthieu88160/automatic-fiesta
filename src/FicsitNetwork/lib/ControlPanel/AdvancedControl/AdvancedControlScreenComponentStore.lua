@@ -1,5 +1,5 @@
-SimpleControlScreenComponentStore = {
-    _class = "SimpleControlScreenComponentStore",
+AdvancedControlScreenComponentStore = {
+    _class = "AdvancedControlScreenComponentStore",
     name = nil,
     potential = nil,
     status = {
@@ -14,6 +14,7 @@ SimpleControlScreenComponentStore = {
         encoder = nil,
         value = nil
     },
+    inputs = {},
     outputs = {},
     stepper = {
         encoder = nil,
@@ -21,7 +22,7 @@ SimpleControlScreenComponentStore = {
     }
 }
 
-function SimpleControlScreenComponentStore:new(componentMap, panel, panelIndex)
+function AdvancedControlScreenComponentStore:new(componentMap, panel, panelIndex)
     local store = {
         name = nil,
         potential = nil,
@@ -37,6 +38,7 @@ function SimpleControlScreenComponentStore:new(componentMap, panel, panelIndex)
             encoder = nil,
             value = nil
         },
+        inputs = {},
         outputs = {},
         stepper = {
             encoder = nil,
@@ -66,6 +68,17 @@ function SimpleControlScreenComponentStore:new(componentMap, panel, panelIndex)
 
     store.stepper.encoder = getModule(panel, panelIndex, componentMap.stepper.encoder)
     store.stepper.value = getModule(panel, panelIndex, componentMap.stepper.value)
+
+    for _, inputMap in ipairs(componentMap.inputs) do
+        table.insert(
+            store.inputs,
+            {
+                production = getModule(panel, panelIndex, inputMap.production),
+                name = getModule(panel, panelIndex, inputMap.name),
+                usage = getModule(panel, panelIndex, inputMap.usage),
+            }
+        )
+    end
 
     for _, outputMap in ipairs(componentMap.outputs) do
         table.insert(
