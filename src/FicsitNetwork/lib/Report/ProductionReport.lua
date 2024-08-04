@@ -129,7 +129,6 @@ function ProductionReport:updateProducers()
             )
         end
 
-
         for i,ingredient in ipairs(recipe:getIngredients()) do
             local ingredientName = ingredient.Type.Name
             local maxInput = ingredient.Amount * perMinute * self:getMultiplicator(producer)

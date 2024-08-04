@@ -193,11 +193,14 @@ function SimpleControlScreen:setTarget(value)
 end
 
 function SimpleControlScreen:setOverclock(value)
+    local needUpdate = self.data.overclock ~= value
+
     self.data.overclock = value
     self.componentStore.overclock.value:setText(math.floor(value * 100) / 100)
     self.componentStore.overclock.value:setColor(0, 1, 0, 0.05)
     
-    if (saveDirectory ~= nil and self.data.name ~= nil) then
+    if (needUpdate and saveDirectory ~= nil and self.data.name ~= nil) then
+        computer.beep(100)
         if (not fs.isDir(saveDirectory .. "/overclock/controlScreens")) then
             fs.createDir(saveDirectory .. "/overclock/controlScreens", true)
         end
