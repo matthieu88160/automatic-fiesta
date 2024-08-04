@@ -1,17 +1,29 @@
-ProductionReport = {_class = "ProductionReport"}
+ProductionReport = {
+    _class = "ProductionReport",
+    reports = {},
+    exports = exportData,
+    imports = importData,
+    extractors = extractorTable,
+    updateCallback = nil
+}
 
 function ProductionReport:new(exportData, importData, extractorTable)
     local report = {
         reports = {},
         exports = exportData,
         imports = importData,
-        extractors = extractorTable
+        extractors = extractorTable,
+        updateCallback = nil
     }
 
     setmetatable(report, self)
     self.__index = self
 
     return report
+end
+
+function ProductionReport:setUpdateCallback(callback)
+    self.updateCallback = callback
 end
 
 function ProductionReport:updateExports(exportData)
@@ -142,10 +154,18 @@ function ProductionReport:update()
     self:updateImports()
     self:updateProducers()
     self:updateExtractors()
+
+    if (self.updateCallback ~= nil) then
+        self.updateCallback(self)
+    end
 end
 
 function ProductionReport:getReport(index)
     return self.reports[index]
+end
+
+function ProductionReport:getReports()
+    return self.reports
 end
 
 function ProductionReport:hasReport(index)

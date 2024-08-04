@@ -265,16 +265,13 @@ end
 
 function ControlScreen:onTargetChange(event)
     local value = event:getArguments()[1]
+    self:setTarget(self.data.target + (value / 4))
 
-    if (value > 0 and self.data.currentProduction == self.data.maxProduction) then
-        return
+    if (self.data.target < 0) then
+        self:setTarget(0)
+    elseif (self.data.target > self.data.maxProduction) then
+        self:setTarget(self.data.maxProduction)
     end
-
-    if (value < 0 and self.data.currentProduction == 0) then
-        return
-    end
-
-    self:setTarget(self.data.target + value)
 
     if (self:isOverclocked() == false) then
         self:applyProductionTarget(self.data.target)
@@ -284,16 +281,13 @@ end
 
 function ControlScreen:onOverclockChange(event)
     local value = event:getArguments()[1]
-
-    if (value > 0 and self.data.overclock == self.data.maxProduction) then
-        return
+    self:setOverclock(self.data.overclock + (value / 4))
+    
+    if (self.data.overclock < self.data.target) then
+        self:setOverclock(self.data.target)
+    elseif (self.data.overclock > self.data.maxProduction) then
+        self:setOverclock(self.data.maxProduction)
     end
-
-    if (value < 0 and self.data.overclock == self.data.currentProduction) then
-        return
-    end
-
-    self:setOverclock(self.data.overclock + value)
 
     if (self:isOverclocked() == true) then
         self:applyProductionTarget(self.data.overclock)
