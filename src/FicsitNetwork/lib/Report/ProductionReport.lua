@@ -104,6 +104,7 @@ function ProductionReport:updateProducers()
         local producerName = producer:getType().DisplayName
         local recipe = producer:getRecipe()
         local perMinute = 60 / recipe.Duration;
+        local mainProduct = nil
         for i,product in ipairs(recipe:getProducts()) do
             local resultName = product.Type.Name
             local maxOutput = product.Amount * perMinute * self:getMultiplicator(producer)
@@ -115,6 +116,10 @@ function ProductionReport:updateProducers()
             end
 
             local normalizedProduct = product.Type.Name:gsub(" +", "")
+
+            if (mainProduct == nil) then
+                mainProduct = normalizedProduct
+            end
 
             self:addToReport(
                 normalizedProduct,
@@ -142,6 +147,12 @@ function ProductionReport:updateProducers()
             local normalizedIngredient = ingredient.Type.Name:gsub(" +", "")
 
             self:addToRequirementReport(normalizedIngredient, currentInput, ingredientName)
+            
+            local report = self:getReport(mainProduct)
+            print(mainProduct)
+            if (report ~= nil) then
+                report:addUsage(normalizedIngredient, currentInput, ingredientName)
+            end
         end
     end
 end
@@ -241,7 +252,7 @@ end
 
 function ProductionReport:addToReport(index, reportInformation, component)
     if (self.reports[index] == nil) then
-        self.reports[index] = Report:new(reportInformation.outputName)
+        self.reports[index] = Report:new(reportInformation.outputName, self)
     end
 
     self.reports[index]:addProduction(
@@ -255,7 +266,7 @@ end
 
 function ProductionReport:addToRequirementReport(index, currentInput, inputName)
     if (self.reports[index] == nil) then
-        self.reports[index] = Report:new(inputName)
+        self.reports[index] = Report:new(inputName, self)
     end
 
     self.reports[index]:addRequirement(currentInput)

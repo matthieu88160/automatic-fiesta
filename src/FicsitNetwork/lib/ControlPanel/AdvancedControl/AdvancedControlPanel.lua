@@ -217,6 +217,25 @@ function AdvancedControlScreen:setOutput(index, prodution, name, required, max)
     end
 end
 
+function AdvancedControlScreen:setInput(index, prodution, name, usage)
+    local inputTable = self.componentStore.inputs[index]
+
+    if (inputTable == nil) then
+        return
+    end
+
+    inputTable.production:setText(math.floor(prodution * 100) / 100)
+    inputTable.production:setColor(1, 1, 1, 0.05)
+    inputTable.name:setText(name)
+    inputTable.usage:setText(math.floor(usage * 100) / 100)
+
+    if (usage > prodution) then
+        inputTable.usage:setColor(0, 1, 0, 0.05)
+    else
+        inputTable.usage:setColor(1, 0, 0, 0.05)
+    end
+end
+
 function AdvancedControlScreen:setTarget(value)
     self.data.target = value
     self.componentStore.target.value:setText(math.floor(value * 100) / 100)
@@ -224,28 +243,9 @@ function AdvancedControlScreen:setTarget(value)
 end
 
 function AdvancedControlScreen:setOverclock(value)
-    local needUpdate = self.data.overclock ~= value
     self.data.overclock = value
     self.componentStore.overclock.value:setText(math.floor(value * 100) / 100)
     self.componentStore.overclock.value:setColor(0, 1, 0, 0.05)
-    
-    if (needUpdate and saveDirectory ~= nil and self.data.name ~= nil) then
-        computer.beep(100)
-        if (not fs.isDir(saveDirectory .. "/overclock/controlScreens")) then
-            fs.createDir(saveDirectory .. "/overclock/controlScreens", true)
-        end
-        
-        local fileName = saveDirectory .. "/overclock/controlScreens/" .. self.data.name:gsub(" +", "")
-        local file = nil
-        if (not fs.isFile(fileName)) then
-            file = fs.open(fileName, 'w')
-        else
-            file = fs.open(fileName, '+r')
-        end
-
-        file:write(value)
-        file:close()
-    end
 end
 
 function AdvancedControlScreen:addComponent(component)

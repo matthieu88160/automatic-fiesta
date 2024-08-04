@@ -22,17 +22,7 @@ function ControlScreenFactory.createSimpleScreenFromReport(panelDefinition, repo
     controlScreen:setName(report:getName())
     controlScreen:setStatus(mode)
     
-    local overclock = nil
-    if (saveDirectory ~= nil and fs.isFile(saveDirectory .. "/overclock/controlScreens/" .. report:getName():gsub(" +", ""))) then
-        local file = fs.open(saveDirectory .. "/overclock/controlScreens/" .. report:getName():gsub(" +", ""), 'r')
-        overclock = file:read(1000)
-        file:close()
-    end
-
-    if (overclock == nil) then
-        overclock = report:getexpectedProduction()
-    end
-    controlScreen:setOverclock(overclock)
+    controlScreen:setOverclock(report:getexpectedProduction())
     
     controlScreen:setTarget(report:getexpectedProduction())
 
@@ -56,17 +46,7 @@ function ControlScreenFactory.createAdvancedScreenFromReport(panelDefinition, re
     controlScreen:setName(report:getName())
     controlScreen:setStatus(mode)
     
-    local overclock = nil
-    if (saveDirectory ~= nil and fs.isFile(saveDirectory .. "/overclock/controlScreens/" .. report:getName():gsub(" +", ""))) then
-        local file = fs.open(saveDirectory .. "/overclock/controlScreens/" .. report:getName():gsub(" +", ""), 'r')
-        overclock = file:read(1000)
-        file:close()
-    end
-
-    if (overclock == nil) then
-        overclock = report:getexpectedProduction()
-    end
-    controlScreen:setOverclock(overclock)
+    controlScreen:setOverclock(report:getexpectedProduction())
     
     controlScreen:setTarget(report:getexpectedProduction())
 

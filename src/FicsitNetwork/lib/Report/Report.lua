@@ -17,7 +17,7 @@ function ReportComponent:new(component, type)
     return component
 end
 
-function Report:new(name)
+function Report:new(name, collection)
     local report = {
         name = name,
         production = {
@@ -28,7 +28,9 @@ function Report:new(name)
             instances = 0,
             components = {}
         },
-        requirement = 0
+        requirement = 0,
+        use = {},
+        collection = collection
     }
 
     setmetatable(report, self)
@@ -43,6 +45,28 @@ function Report:addProduction(maxOutput, currentProduction, potential, expected)
     self.production.potential = ((self.production.potential * self.production.instances) + potential) / (self.production.instances + 1)
     self.production.instances = self.production.instances + 1
     self.production.expected = self.production.expected + expected
+end
+
+function Report:addUsage(ingredient, amount, name)
+    if (self.use[ingredient] == nil) then
+        print("create usage")
+        self.use[ingredient] = {
+            index = ingredient,
+            name = name,
+            amount = 0
+        }
+    end
+
+    self.use[ingredient].amount = self.use[ingredient].amount + amount
+    print(self.use[ingredient])
+end
+
+function Report:getUsages()
+    return self.use
+end
+
+function Report:getCollection()
+    return self.collection
 end
 
 function Report:getName()

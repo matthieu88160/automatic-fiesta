@@ -43,11 +43,6 @@ for i, drive in pairs(fs.childs("/dev")) do
     if (fs.isDir(bootDir)) then
         iterateFolder('boot', bootDir)
     end
-    
-    local saveDir = '/' .. alphabet[i] .. '/save'
-    if (fs.isDir(saveDir)) then
-        saveDirectory = saveDir
-    end
 end
 
 for _, libraryFile in ipairs(loadOrder['lib']) do
@@ -58,10 +53,15 @@ for _, dataFile in ipairs(loadOrder['data']) do
     fs.doFile(dataFile)
 end
 
+local boots = {}
 for _, bootFile in ipairs(loadOrder['boot']) do
-    fs.doFile(bootFile)
+    table.insert(boots, fs.loadFile(bootFile))
 end
 
 for _, mountPoint in ipairs(loadOrder['mountPoints']) do
     fs.unmount(mountPoint)
+end
+
+for _, bootFunction in pairs(boots) do
+    bootFunction()
 end
