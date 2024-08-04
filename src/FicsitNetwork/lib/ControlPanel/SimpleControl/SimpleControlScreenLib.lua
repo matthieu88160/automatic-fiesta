@@ -1,5 +1,5 @@
-ControlScreen = {
-    _class = "ControlScreen",
+SimpleControlScreen = {
+    _class = "SimpleControlScreen",
     mode_stop = "mode_stop",
     mode_running = "mode_running",
     mode_overclock = "mode_overclock"
@@ -7,27 +7,27 @@ ControlScreen = {
 
 -- TODO: Make it listen and react to events
 
-function ControlScreen:new(definition)
+function SimpleControlScreen:new(definition)
     if (definition == nil) then
-        computer.panic("Cannot instantiate ControlScreen without definition")
+        computer.panic("Cannot instantiate SimpleControlScreen without definition")
     end
     if (definition.id == nil) then
-        computer.panic("Cannot instantiate ControlScreen without screen id")
+        computer.panic("Cannot instantiate SimpleControlScreen without screen id")
     end
     if (definition.panelIndex == nil) then
-        computer.panic("Cannot instantiate ControlScreen without panel index")
+        computer.panic("Cannot instantiate SimpleControlScreen without panel index")
     end
     if (definition.version == nil) then
-        computer.panic("Cannot instantiate ControlScreen without panel version")
+        computer.panic("Cannot instantiate SimpleControlScreen without panel version")
     end
     if (definition.offset == nil) then
-        computer.panic("Cannot instantiate ControlScreen without panel offset")
+        computer.panic("Cannot instantiate SimpleControlScreen without panel offset")
     end
 
     local component = component.proxy(definition.id)
     local control = {
         components = {},
-        componentStore = ControlScreenComponentStore:new(
+        componentStore = SimpleControlScreenComponentStore:new(
             {
                 name = {0, 10 - definition.offset},
                 potential = {4, 10 - definition.offset},
@@ -73,7 +73,7 @@ function ControlScreen:new(definition)
     return control
 end
 
-function ControlScreen:clear()
+function SimpleControlScreen:clear()
     self:setName("")
     self:setPotential(0, 0)
 
@@ -111,7 +111,7 @@ function ControlScreen:clear()
     event.pull(0.1)
 end
 
-function ControlScreen:setName(name)
+function SimpleControlScreen:setName(name)
     function _ControlScreenSubName(name)
         if (#name > 45) then
             return _ControlScreenSubName(string.sub(name, 1, 42)) .. "..."
@@ -127,13 +127,13 @@ function ControlScreen:setName(name)
     self.data.name = name
 end
 
-function ControlScreen:setPotential(potential, limit)
+function SimpleControlScreen:setPotential(potential, limit)
     self.data.potential = potential
     self.componentStore.potential.percent = potential
     self.componentStore.potential.limit = limit or 1
 end
 
-function ControlScreen:setStatus(mode)
+function SimpleControlScreen:setStatus(mode)
     local elements = {
         self.componentStore.status.indicator,
         self.componentStore.status.switch
@@ -151,7 +151,7 @@ function ControlScreen:setStatus(mode)
     end
 end
 
-function ControlScreen:setOutput(index, prodution, name, required, max)
+function SimpleControlScreen:setOutput(index, prodution, name, required, max)
     local outputTable = self.componentStore.outputs[index]
 
     if (outputTable == nil) then
@@ -181,13 +181,13 @@ function ControlScreen:setOutput(index, prodution, name, required, max)
     end
 end
 
-function ControlScreen:setTarget(value)
+function SimpleControlScreen:setTarget(value)
     self.data.target = value
     self.componentStore.target.value:setText(math.floor(value * 100) / 100)
     self.componentStore.target.value:setColor(0, 1, 0, 0.05)
 end
 
-function ControlScreen:setOverclock(value)
+function SimpleControlScreen:setOverclock(value)
     self.data.overclock = value
     self.componentStore.overclock.value:setText(math.floor(value * 100) / 100)
     self.componentStore.overclock.value:setColor(0, 1, 0, 0.05)
@@ -210,15 +210,15 @@ function ControlScreen:setOverclock(value)
     end
 end
 
-function ControlScreen:addComponent(component)
+function SimpleControlScreen:addComponent(component)
     table.insert(self.components, component)
 end
 
-function ControlScreen:getComponents()
+function SimpleControlScreen:getComponents()
     return self.components
 end
 
-function ControlScreen:startListening(dispatcher)
+function SimpleControlScreen:startListening(dispatcher)
     event.listen(self.componentStore.status.switch)
     event.listen(self.componentStore.target.encoder)
     event.listen(self.componentStore.overclock.encoder)
@@ -228,32 +228,30 @@ function ControlScreen:startListening(dispatcher)
     dispatcher:addListener(self.componentStore.overclock.encoder:getHash(), {self, self.onOverclockChange})
 end
 
-function ControlScreen:applyProductionTarget(target)
+function SimpleControlScreen:applyProductionTarget(target)
     local newPotential = target / self.data.maxProduction
-
-    print(newPotential, target, self.data.maxProduction)
 
     for _, worker in ipairs(self.components) do
         worker.potential = newPotential
     end
 end
 
-function ControlScreen:isOverclocked()
+function SimpleControlScreen:isOverclocked()
     return self.componentStore.status.switch.state == 2
 end
 
-function ControlScreen:onStatusSwitch(event)
+function SimpleControlScreen:onStatusSwitch(event)
     if (event:getComponent().state == 0) then
-        self:setStatus(ControlScreen.mode_stop)
+        self:setStatus(SimpleControlScreen.mode_stop)
         for _, worker in ipairs(self.components) do
             worker.standby = true
         end
     else
         if (event:getComponent().state == 1) then
-            self:setStatus(ControlScreen.mode_running)
+            self:setStatus(SimpleControlScreen.mode_running)
             self:applyProductionTarget(self.data.target)
         else
-            self:setStatus(ControlScreen.mode_overclock)
+            self:setStatus(SimpleControlScreen.mode_overclock)
             self:applyProductionTarget(self.data.overclock)
         end
 
@@ -263,7 +261,7 @@ function ControlScreen:onStatusSwitch(event)
     end
 end
 
-function ControlScreen:onTargetChange(event)
+function SimpleControlScreen:onTargetChange(event)
     local value = event:getArguments()[1]
     self:setTarget(self.data.target + (value / 4))
 
@@ -279,7 +277,7 @@ function ControlScreen:onTargetChange(event)
 end
 
 
-function ControlScreen:onOverclockChange(event)
+function SimpleControlScreen:onOverclockChange(event)
     local value = event:getArguments()[1]
     self:setOverclock(self.data.overclock + (value / 4))
     

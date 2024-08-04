@@ -1,5 +1,5 @@
-ControlScreenComponentStore = {
-    _class = "ControlScreenComponentStore",
+SimpleControlScreenComponentStore = {
+    _class = "SimpleControlScreenComponentStore",
     name = nil,
     potential = nil,
     status = {
@@ -17,7 +17,7 @@ ControlScreenComponentStore = {
     outputs = {}
 }
 
-function ControlScreenComponentStore:new(componentMap, panel, panelIndex)
+function SimpleControlScreenComponentStore:new(componentMap, panel, panelIndex)
     local store = {
         name = nil,
         potential = nil,

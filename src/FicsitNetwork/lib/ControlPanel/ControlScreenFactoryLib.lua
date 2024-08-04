@@ -1,7 +1,13 @@
 ControlScreenFactory = {_class = "ControlScreenFactory"}
 
 function ControlScreenFactory.createFromReport(panelDefinition, report)
-    local controlScreen = ControlScreen:new(panelDefinition)
+    if (panelDefinition.version == 1) then
+        return ControlScreenFactory.createSimpleScreenFromReport(panelDefinition, report)
+    end
+end
+
+function ControlScreenFactory.createSimpleScreenFromReport(panelDefinition, report)
+    local controlScreen = SimpleControlScreen:new(panelDefinition)
 
     for _, component in ipairs(report:getComponents()) do
         controlScreen:addComponent(component.component)
@@ -21,9 +27,9 @@ function ControlScreenFactory.createFromReport(panelDefinition, report)
     controlScreen:setOverclock(overclock)
     
     controlScreen:setTarget(report:getexpectedProduction())
-    controlScreen:setStatus(ControlScreen.mode_running)
+    controlScreen:setStatus(SimpleControlScreen.mode_running)
 
-    ControlScreenUpdater.updateFromReport(controlScreen, report)
+    SimpleControlScreenUpdater.updateFromReport(controlScreen, report)
 
     return controlScreen
 end

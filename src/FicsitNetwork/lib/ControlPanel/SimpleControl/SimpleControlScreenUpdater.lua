@@ -1,6 +1,6 @@
-ControlScreenUpdater = {_class = "ControlScreenUpdater"}
+SimpleControlScreenUpdater = {_class = "SimpleControlScreenUpdater"}
 
-function ControlScreenUpdater.updateFromReport(controlScreen, report)
+function SimpleControlScreenUpdater.updateFromReport(controlScreen, report)
     controlScreen:setOutput(
         1,
         report:getProductionAmount(),
